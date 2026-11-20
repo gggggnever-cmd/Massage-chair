@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Massage Picker</title>
+<meta name="theme-color" content="#1c1714">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root {
+    --bg: #f7f2ec;
+    --surface: #ffffff;
+    --surface-2: #f0e8df;
+    --text: #2a211b;
+    --muted: #7a6a5d;
+    --line: #e4d8cc;
+    --accent: #c46a2b;
+    --accent-ink: #ffffff;
+    --love: #d6336c;
+    --ok: #2f9e44;
+    --skip: #868e96;
+    --shadow: 0 1px 2px rgba(60,40,20,.06), 0 4px 14px rgba(60,40,20,.06);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15110e;
+      --surface: #1f1915;
+      --surface-2: #2a221c;
+      --text: #f3ebe3;
+      --muted: #a8988a;
+      --line: #3a3029;
+      --accent: #e08a4a;
+      --accent-ink: #1a120c;
+      --love: #f06595;
+      --ok: #51cf66;
+      --skip: #868e96;
+      --shadow: none;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.4;
+    -webkit-tap-highlight-color: transparent;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px 40px; }
+
+  header {
+    padding: calc(12px + env(safe-area-inset-top)) 0 10px;
+  }
+  .top { display: flex; align-items: center; gap: 12px; }
+  h1 { font-size: 22px; margin: 0; flex: 1; letter-spacing: -.01em; }
+  .btn {
+    border: 0; border-radius: 999px; padding: 10px 16px;
+    font: inherit; font-weight: 600; cursor: pointer;
+    background: var(--surface-2); color: var(--text);
+    min-height: 44px;
+  }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); }
+
+  .q { color: var(--muted); font-size: 14px; margin: 14px 0 8px; }
+  .moods { display: flex; flex-wrap: wrap; gap: 8px; }
+  @media (max-width: 599px) {
+    .moods { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 4px; }
+    .moods::-webkit-scrollbar { display: none; }
+    .mood { flex: none; }
+  }
+  .mood {
+    border: 1px solid var(--line); background: var(--surface); color: var(--text);
+    border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 15px;
+    cursor: pointer; min-height: 40px;
+  }
+  .mood[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 26px 0 10px; font-weight: 700; }
+  .grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
+
+  .card {
+    display: flex; gap: 12px; align-items: flex-start; text-align: left;
+    width: 100%; padding: 14px; border-radius: 16px;
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--line); box-shadow: var(--shadow);
+    font: inherit; cursor: pointer;
+  }
+  .card.love { border-color: color-mix(in srgb, var(--love) 45%, var(--line)); }
+  .card.skip { opacity: .6; }
+  .card .ico { font-size: 28px; line-height: 1; width: 36px; text-align: center; flex: none; padding-top: 2px; }
+  .card .body { flex: 1; min-width: 0; }
+  .card .name { font-weight: 700; font-size: 17px; }
+  .card .short { color: var(--muted); font-size: 14px; margin-top: 2px; }
+  .card .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; font-size: 12px; }
+  .pill { padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+  .pill.love { background: color-mix(in srgb, var(--love) 18%, transparent); color: var(--love); font-weight: 600; }
+  .pill.ok { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); font-weight: 600; }
+  .pill.skip { color: var(--skip); }
+
+  details.skipped summary { cursor: pointer; color: var(--muted); margin: 26px 0 10px; font-weight: 600; }
+  .empty { color: var(--muted); padding: 20px 0; }
+
+  /* detail sheet */
+  dialog {
+    border: 0; padding: 0; margin: auto auto 0; width: 100%; max-width: 640px;
+    max-height: 92vh; border-radius: 22px 22px 0 0;
+    background: var(--surface); color: var(--text);
+  }
+  @media (min-width: 640px) { dialog { margin: auto; border-radius: 22px; } }
+  dialog::backdrop { background: rgba(0,0,0,.45); }
+  .sheet { padding: 20px 20px calc(20px + env(safe-area-inset-bottom)); }
+  .sheet-head { display: flex; gap: 12px; align-items: center; }
+  .sheet-head .ico { font-size: 40px; }
+  .sheet-head h3 { margin: 0; font-size: 22px; flex: 1; }
+  .close { background: var(--surface-2); border: 0; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; color: var(--text); cursor: pointer; }
+  .how {
+    margin: 16px 0; padding: 12px 14px; border-radius: 12px;
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    font-weight: 600;
+  }
+  .how small { display: block; font-weight: 400; color: var(--muted); margin-bottom: 2px; }
+  .desc { color: var(--text); margin: 0 0 6px; }
+  .note-unclear { color: var(--muted); font-size: 13px; font-style: italic; }
+  .label { font-size: 13px; color: var(--muted); margin: 18px 0 8px; font-weight: 600; }
+  .rate { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .rate button {
+    border: 2px solid var(--line); background: var(--surface); color: var(--text);
+    border-radius: 14px; padding: 10px 6px; font: inherit; font-weight: 600; cursor: pointer;
+    min-height: 56px;
+  }
+  .rate button span { display: block; font-size: 22px; }
+  .rate button[aria-pressed="true"][data-r="love"] { border-color: var(--love); background: color-mix(in srgb, var(--love) 14%, transparent); }
+  .rate button[aria-pressed="true"][data-r="ok"]   { border-color: var(--ok);   background: color-mix(in srgb, var(--ok) 14%, transparent); }
+  .rate button[aria-pressed="true"][data-r="skip"] { border-color: var(--skip); background: color-mix(in srgb, var(--skip) 18%, transparent); }
+  textarea {
+    width: 100%; min-height: 64px; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--text); font: inherit; padding: 10px 12px; resize: vertical;
+  }
+  .row { display: flex; gap: 10px; align-items: center; margin-top: 18px; flex-wrap: wrap; }
+  .row .btn { flex: 1; }
+  .used { color: var(--muted); font-size: 14px; margin-top: 10px; }
+  .toast {
+    position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 999px;
+    font-weight: 600; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 20;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <h1>💆 Massage Picker</h1>
+      <button class="btn primary" id="surprise">🎲 Surprise me</button>
+    </div>
+    <div class="q">How do you feel?</div>
+    <div class="moods" id="moods"></div>
+  </header>
+
+  <main id="list"></main>
+</div>
+
+<dialog id="sheet"><div class="sheet" id="sheetBody"></div></dialog>
+<div class="toast" id="toast"></div>
+
+<script src="modes.js"></script>
+<script>
+(() => {
+  const KEY = "massage-picker.v1";
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
+  const st = Object.assign({ rating: {}, note: {}, used: {}, mood: "all" }, load());
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch {} };
+
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  const RANK = { love: 0, undefined: 1, ok: 2, skip: 3 };
+  const RLABEL = { love: "❤️ Love", ok: "👍 OK", skip: "👎 Skip" };
+
+  function ago(ts) {
+    if (!ts) return "";
+    const d = Math.floor((Date.now() - ts) / 86400000);
+    if (d <= 0) return "used today";
+    if (d === 1) return "used yesterday";
+    if (d < 30) return `used ${d} days ago`;
+    return `used ${new Date(ts).toLocaleDateString()}`;
+  }
+  const lastUsed = (id) => (st.used[id] || []).slice(-1)[0];
+
+  function visible() {
+    const m = st.mood;
+    return MODES.filter(x => m === "all" || x.tags.includes(m));
+  }
+
+  function renderMoods() {
+    $("#moods").innerHTML = MOODS.map(m =>
+      `<button class="mood" data-mood="${m.id}" aria-pressed="${st.mood === m.id}">${m.icon} ${esc(m.label)}</button>`
+    ).join("");
+  }
+
+  function card(x) {
+    const r = st.rating[x.id];
+    const pills = [];
+    if (r) pills.push(`<span class="pill ${r}">${RLABEL[r]}</span>`);
+    if (x.strength) pills.push(`<span class="pill">${esc(x.strength)}</span>`);
+    if (x.group === "more") pills.push(`<span class="pill">More Mode</span>`);
+    const lu = lastUsed(x.id);
+    if (lu) pills.push(`<span class="pill">${ago(lu)}</span>`);
+    return `<button class="card ${r || ""}" data-id="${x.id}">
+      <div class="ico">${x.icon}</div>
+      <div class="body">
+        <div class="name">${esc(x.name)}</div>
+        <div class="short">${esc(x.short)}</div>
+        ${pills.length ? `<div class="meta">${pills.join("")}</div>` : ""}
+      </div>
+    </button>`;
+  }
+
+  function sortList(a) {
+    return a.slice().sort((p, q) =>
+      (RANK[st.rating[p.id]] - RANK[st.rating[q.id]]) || ((lastUsed(q.id) || 0) - (lastUsed(p.id) || 0))
+    );
+  }
+
+  function renderList() {
+    const items = visible();
+    const loved = sortList(items.filter(x => st.rating[x.id] === "love"));
+    const rest = sortList(items.filter(x => !st.rating[x.id] || st.rating[x.id] === "ok"));
+    const skipped = items.filter(x => st.rating[x.id] === "skip");
+    let html = "";
+    if (loved.length) html += `<h2>❤️ Your favourites</h2><div class="grid">${loved.map(card).join("")}</div>`;
+    if (rest.length) html += `<h2>${loved.length ? "Others" : "Massages"}</h2><div class="grid">${rest.map(card).join("")}</div>`;
+    if (skipped.length) html += `<details class="skipped"><summary>👎 Skipped (${skipped.length})</summary><div class="grid">${skipped.map(card).join("")}</div></details>`;
+    if (!items.length) html = `<p class="empty">Nothing matches — try another mood.</p>`;
+    $("#list").innerHTML = html;
+  }
+
+  function render() { renderMoods(); renderList(); }
+
+  let openId = null;
+  function openSheet(id) {
+    const x = MODES.find(m => m.id === id);
+    if (!x) return;
+    openId = id;
+    const r = st.rating[id];
+    const uses = (st.used[id] || []).length;
+    $("#sheetBody").innerHTML = `
+      <div class="sheet-head">
+        <div class="ico">${x.icon}</div>
+        <h3>${esc(x.name)}</h3>
+        <button class="close" data-act="close" aria-label="Close">✕</button>
+      </div>
+      <div class="how"><small>How to start</small>${esc(x.how)}</div>
+      <p class="desc">${esc(x.desc)}</p>
+      ${x.unclear ? `<div class="note-unclear">Part of this description was hard to read in the manual photo.</div>` : ""}
+      <div class="label">How did you like it?</div>
+      <div class="rate">
+        ${["love","ok","skip"].map(k => `<button data-r="${k}" aria-pressed="${r === k}"><span>${RLABEL[k].split(" ")[0]}</span>${RLABEL[k].split(" ")[1]}</button>`).join("")}
+      </div>
+      <div class="label">Note (optional)</div>
+      <textarea id="note" placeholder="e.g. great with heat on, too strong on the legs…">${esc(st.note[id] || "")}</textarea>
+      <div class="row">
+        <button class="btn primary" data-act="used">✅ Using it now</button>
+      </div>
+      <div class="used">${uses ? `Used ${uses} time${uses > 1 ? "s" : ""} · last ${ago(lastUsed(id)).replace("used ", "")}` : "Not used yet"}</div>
+    `;
+    const d = $("#sheet");
+    if (!d.open) d.showModal();
+  }
+
+  function closeSheet() {
+    const d = $("#sheet");
+    if (openId) {
+      const t = $("#note");
+      if (t) { const v = t.value.trim(); if (v) st.note[openId] = v; else delete st.note[openId]; save(); }
+    }
+    openId = null;
+    if (d.open) d.close();
+    renderList();
+  }
+
+  function toast(msg) {
+    const t = $("#toast");
+    t.textContent = msg; t.classList.add("show");
+    clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 1600);
+  }
+
+  // events
+  $("#moods").addEventListener("click", e => {
+    const b = e.target.closest("[data-mood]"); if (!b) return;
+    st.mood = b.dataset.mood; save(); render();
+  });
+  $("#list").addEventListener("click", e => {
+    const c = e.target.closest(".card"); if (c) openSheet(c.dataset.id);
+  });
+  $("#sheet").addEventListener("click", e => {
+    if (e.target === $("#sheet")) return closeSheet(); // backdrop tap
+    const r = e.target.closest("[data-r]");
+    if (r) {
+      const k = r.dataset.r;
+      if (st.rating[openId] === k) delete st.rating[openId]; else st.rating[openId] = k;
+      save();
+      const t = $("#note"); const keep = t ? t.value : "";
+      openSheet(openId);
+      $("#note").value = keep;
+      return;
+    }
+    const a = e.target.closest("[data-act]");
+    if (!a) return;
+    if (a.dataset.act === "close") closeSheet();
+    if (a.dataset.act === "used") {
+      (st.used[openId] = st.used[openId] || []).push(Date.now());
+      save(); toast("Enjoy! 😌"); closeSheet();
+    }
+  });
+  $("#sheet").addEventListener("cancel", e => { e.preventDefault(); closeSheet(); });
+
+  $("#surprise").addEventListener("click", () => {
+    const pool = visible();
+    const tiers = [
+      pool.filter(x => st.rating[x.id] === "love"),
+      pool.filter(x => !st.rating[x.id]),
+      pool.filter(x => st.rating[x.id] === "ok")
+    ];
+    let pick = tiers.find(t => t.length);
+    if (!pick) { toast("Nothing left that you haven't skipped here"); return; }
+    // avoid repeating the last one used if there's a choice
+    if (pick.length > 1) {
+      const last = Object.entries(st.used).map(([id, ts]) => [id, ts.slice(-1)[0]]).sort((a, b) => b[1] - a[1])[0];
+      if (last) pick = pick.filter(x => x.id !== last[0]);
+    }
+    openSheet(pick[Math.floor(Math.random() * pick.length)].id);
+  });
+
+  render();
+
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
