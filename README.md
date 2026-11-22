@@ -4,7 +4,8 @@ A small phone app for picking a massage-chair program without digging through th
 
 - **How do you feel?** Tap a mood (before bed, lower back, after workout…) to see only the programs that fit.
 - **Rate them** ❤️ Love / 👍 OK / 👎 Skip. Favourites float to the top; skipped ones get tucked away.
-- **How to start** is shown on every program, plus an optional note ("great with heat").
+- **Which button to press** is shown right on every card; tap for the full description and an optional note ("great with heat").
+- **"Last time… how was it?"** — the next time you open the app after tapping *Using it now*, a one-tap Love / OK / Skip strip appears at the top.
 - **🎲 Surprise me** picks from your favourites (or ones you haven't tried yet).
 
 Everything is saved on the phone itself — no account, no sync, works offline.
