@@ -18,3 +18,7 @@ Built for Android (sized for both the folded cover screen and the unfolded inner
 ## Editing the program list
 All programs live in `modes.js` (name, description from the manual, mood tags, how to start).
 After changing files, bump `VERSION` in `sw.js` so installed phones pick up the update.
+
+## Single-file version
+`Massage-Picker.html` is the whole app in one file (no install, no hosting). Copy it to a phone and open it in Chrome.
+It is generated from `index.html` + `modes.js`; regenerate it after changing either.
